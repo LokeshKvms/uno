@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+        env:
+          PW_CHANNEL: chromium
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t uno .
+      - name: Smoke test the container
+        run: |
+          docker run -d --name uno -p 3001:3001 -e SESSION_SECRET=ci-only-secret-0123456789abcdef uno
+          for i in $(seq 1 30); do curl -fsS http://localhost:3001/healthz && break; sleep 1; done
+          curl -fsS http://localhost:3001/healthz
+          curl -fsS http://localhost:3001/ | grep -q '<div id="root">'
+          curl -fsS -X POST http://localhost:3001/api/session -H 'content-type: application/json' -d '{}'
+      - if: failure()
+        run: docker logs uno
