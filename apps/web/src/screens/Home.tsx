@@ -1,5 +1,5 @@
 import type { Card as CardData } from "@uno/engine";
-import { ArrowRight, BookOpen, Robot, Users } from "@phosphor-icons/react";
+import { ArrowRight, BookOpen, MusicNotes, Robot, SpeakerHigh, SpeakerSlash, Users } from "@phosphor-icons/react";
 import { motion, useReducedMotion } from "motion/react";
 import { type FormEvent, useEffect, useState } from "react";
 import { Card, UnoLogo } from "../components/Card.tsx";
@@ -7,6 +7,8 @@ import { type LegalPage, LegalDialog } from "../components/LegalDialog.tsx";
 import { NameFields } from "../components/NameFields.tsx";
 import { RulesDialog } from "../components/RulesDialog.tsx";
 import { api } from "../lib/api.ts";
+import { setMusicEnabled, useMusicEnabled } from "../lib/music.ts";
+import { play, setSoundEnabled, soundEnabled } from "../lib/sound.ts";
 import { useStore } from "../lib/store.ts";
 
 const HERO: CardData[] = [
@@ -45,6 +47,8 @@ export function Home() {
   const [level, setLevel] = useState<"easy" | "normal" | "hard">("normal");
   const [rules, setRules] = useState(false);
   const [legal, setLegal] = useState<LegalPage | null>(null);
+  const [sound, setSound] = useState(soundEnabled());
+  const music = useMusicEnabled();
   const reduce = useReducedMotion();
 
   useEffect(() => {
@@ -69,6 +73,7 @@ export function Home() {
       toast("Room codes are 6 characters, like K7QX2P.");
       return;
     }
+    play("tap");
     setBusy(kind);
     try {
       const result =
@@ -90,6 +95,31 @@ export function Home() {
   return (
     <main className="home">
       <UnoLogo className="home-mark" />
+      <div className="home-audio">
+        <button
+          type="button"
+          className="icon-btn"
+          aria-pressed={sound}
+          aria-label={sound ? "Mute sounds" : "Turn sounds on"}
+          title={sound ? "Mute sounds" : "Turn sounds on"}
+          onClick={() => {
+            setSoundEnabled(!sound);
+            setSound(!sound);
+          }}
+        >
+          {sound ? <SpeakerHigh size={20} weight="bold" /> : <SpeakerSlash size={20} weight="bold" />}
+        </button>
+        <button
+          type="button"
+          className="icon-btn"
+          aria-pressed={music}
+          aria-label={music ? "Turn music off" : "Play background music"}
+          title={music ? "Turn music off" : "Play background music"}
+          onClick={() => setMusicEnabled(!music)}
+        >
+          <MusicNotes size={20} weight="bold" />
+        </button>
+      </div>
 
       <section className="home-copy">
         <h1 className="home-title">Deal your friends in.</h1>
@@ -105,7 +135,17 @@ export function Home() {
         )}
 
         <form className="home-form" onSubmit={(e) => void go("create", e)}>
-          <NameFields id="home-name" name={name} avatar={avatar} onName={setName} onAvatar={setAvatar} error={nameError} />
+          <NameFields
+            id="home-name"
+            name={name}
+            avatar={avatar}
+            onName={setName}
+            onAvatar={(v) => {
+              if (v !== avatar) play("select");
+              setAvatar(v);
+            }}
+            error={nameError}
+          />
 
           <div className="home-actions">
             <button type="submit" className="btn btn-primary home-create" disabled={busy !== null}>
@@ -156,14 +196,32 @@ export function Home() {
           <div className="home-practice-row">
             <div className="segmented" role="radiogroup" aria-label="Number of bots">
               {[1, 2, 3, 4, 5].map((n) => (
-                <button key={n} type="button" role="radio" aria-checked={bots === n} onClick={() => setBots(n)}>
+                <button
+                  key={n}
+                  type="button"
+                  role="radio"
+                  aria-checked={bots === n}
+                  onClick={() => {
+                    if (bots !== n) play("select");
+                    setBots(n);
+                  }}
+                >
                   {n}
                 </button>
               ))}
             </div>
             <div className="segmented" role="radiogroup" aria-label="Bot difficulty">
               {(["easy", "normal", "hard"] as const).map((l) => (
-                <button key={l} type="button" role="radio" aria-checked={level === l} onClick={() => setLevel(l)}>
+                <button
+                  key={l}
+                  type="button"
+                  role="radio"
+                  aria-checked={level === l}
+                  onClick={() => {
+                    if (level !== l) play("select");
+                    setLevel(l);
+                  }}
+                >
                   {l[0]!.toUpperCase() + l.slice(1)}
                 </button>
               ))}

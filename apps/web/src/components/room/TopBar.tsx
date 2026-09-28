@@ -1,6 +1,7 @@
-import { BookOpen, ChatCircleText, Check, Copy, CornersIn, CornersOut, SignOut, SpeakerHigh, SpeakerSlash, UserPlus } from "@phosphor-icons/react";
+import { BookOpen, ChatCircleText, Check, Copy, CornersIn, CornersOut, MusicNotes, SignOut, SpeakerHigh, SpeakerSlash, UserPlus } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
-import { setSoundEnabled, soundEnabled } from "../../lib/sound.ts";
+import { setMusicEnabled, useMusicEnabled } from "../../lib/music.ts";
+import { play, setSoundEnabled, soundEnabled } from "../../lib/sound.ts";
 import { useStore } from "../../lib/store.ts";
 import { RulesDialog } from "../RulesDialog.tsx";
 import { Tip } from "../Tip.tsx";
@@ -13,6 +14,7 @@ export function TopBar({ onLeave }: { onLeave: () => void }) {
   const setPanelOpen = useStore((s) => s.setPanelOpen);
   const unread = useStore((s) => s.unread);
   const [sound, setSound] = useState(soundEnabled());
+  const music = useMusicEnabled();
   const [copied, setCopied] = useState(false);
   const [invite, setInvite] = useState(false);
   const [rules, setRules] = useState(false);
@@ -30,6 +32,7 @@ export function TopBar({ onLeave }: { onLeave: () => void }) {
   const copyCode = async () => {
     try {
       await navigator.clipboard.writeText(snap.code);
+      play("copy");
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
@@ -84,6 +87,16 @@ export function TopBar({ onLeave }: { onLeave: () => void }) {
             }}
           >
             {sound ? <SpeakerHigh size={20} weight="bold" /> : <SpeakerSlash size={20} weight="bold" />}
+          </button>
+        </Tip>
+        <Tip label={music ? "Turn music off" : "Play background music"} side="bottom">
+          <button
+            className="icon-btn"
+            aria-pressed={music}
+            aria-label={music ? "Turn music off" : "Play background music"}
+            onClick={() => setMusicEnabled(!music)}
+          >
+            <MusicNotes size={20} weight="bold" />
           </button>
         </Tip>
         {document.fullscreenEnabled && (

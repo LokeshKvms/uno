@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Toasts } from "./components/Toasts.tsx";
 import { TipProvider } from "./components/Tip.tsx";
+import { resumeMusic } from "./lib/music.ts";
 import { unlockAudio } from "./lib/sound.ts";
 import { useStore } from "./lib/store.ts";
 import { Home } from "./screens/Home.tsx";
@@ -16,7 +17,10 @@ export function App() {
 
   useEffect(() => {
     void boot();
-    const unlock = () => unlockAudio();
+    const unlock = () => {
+      unlockAudio();
+      resumeMusic();
+    };
     window.addEventListener("pointerdown", unlock, { once: false, passive: true });
     window.addEventListener("keydown", unlock, { passive: true });
     return () => {

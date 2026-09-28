@@ -158,6 +158,14 @@
   max-width: 1400px;
   margin: 0 auto;
 }
+.home-audio {
+  grid-area: mark;
+  justify-self: end;
+  align-self: center;
+  display: flex;
+  gap: var(--s1);
+  grid-column: 1 / -1;
+}
 .home-copy {
   grid-area: copy;
   display: grid;

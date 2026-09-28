@@ -18,6 +18,8 @@ export const prefs = {
   setAvatar: (v: number) => write("uno.avatar", String(v)),
   sound: () => read("uno.sound") !== "off",
   setSound: (on: boolean) => write("uno.sound", on ? "on" : "off"),
+  music: () => read("uno.music") === "on",
+  setMusic: (on: boolean) => write("uno.music", on ? "on" : "off"),
   volume: () => Math.min(1, Math.max(0, Number(read("uno.volume") ?? 0.7))),
   setVolume: (v: number) => write("uno.volume", String(v)),
   sort: () => (read("uno.sort") === "number" ? "number" : read("uno.sort") === "none" ? "none" : "color") as SortMode,
