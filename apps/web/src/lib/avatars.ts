@@ -1,4 +1,4 @@
-export const AVATAR_TONES = ["#8d6e63", "#6d8a96", "#8a7fa8", "#7f9a6f", "#a77d6a", "#6f8f86", "#9a8a5e", "#86718d"];
+export const AVATAR_TONES = ["#896b60", "#5d757f", "#756c8f", "#637857", "#8e6a5a", "#5c776f", "#7e714d", "#7f6b86"];
 
 export function initials(name: string): string {
   const parts = name.trim().split(/\s+/);

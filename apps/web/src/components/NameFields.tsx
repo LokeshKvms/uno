@@ -48,7 +48,7 @@ export function NameFields({ id, name, avatar, onName, onAvatar, error }: NameFi
               onClick={() => onAvatar(i)}
               style={{ background: tone }}
             >
-              {avatar === i ? initials(name || "You") : ""}
+              {avatar === i && <span aria-hidden="true">{initials(name || "You")}</span>}
             </button>
           ))}
         </div>
