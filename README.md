@@ -1,10 +1,10 @@
 # UNO
 
-Real-time multiplayer UNO in the browser. Create a table, share the link, and play with friends by the official rules.
+Real-time multiplayer UNO in the browser. Create a table, share the link, and play with friends by the standard rules.
 
 ## Features
 
-- Official rules: 108-card deck, action and wild cards, the Wild Draw Four challenge, calling and catching UNO, official scoring
+- Standard rules: 108-card deck, action and wild cards, the Wild Draw Four challenge, calling and catching UNO, standard scoring
 - Quick game or Race to 500 with a running scoreboard
 - Tables for 2 to 10 players, invite by code, link or QR code, and up to 20 spectators
 - Bots for empty seats in three difficulty levels
@@ -93,3 +93,7 @@ docker run --rm -p 3001:3001 -e SESSION_SECRET=change-me uno
 The server is authoritative. Clients send intents, the server validates them against the rules engine, and each player receives a snapshot containing only their own hand. Commands carry ids so retries are applied once. Rooms are persisted shortly after every change and deadlines are stored as timestamps, so a restarted server resumes every game where it left off.
 
 Turns last 45 seconds, 20 seconds after drawing and 20 seconds for a challenge or the opening color. A timed-out player draws automatically, and after three consecutive timeouts a bot plays for them until they return. A disconnected player's seat is held for 60 seconds before a bot takes over.
+
+## Disclaimer
+
+UNO is a trademark of Mattel, Inc. This is a non-commercial fan project and is not affiliated with, sponsored or endorsed by Mattel. The card artwork, logo and sounds are original.

@@ -3,6 +3,7 @@ import { ArrowRight, BookOpen, Robot, Users } from "@phosphor-icons/react";
 import { motion, useReducedMotion } from "motion/react";
 import { type FormEvent, useEffect, useState } from "react";
 import { Card, UnoLogo } from "../components/Card.tsx";
+import { type LegalPage, LegalDialog } from "../components/LegalDialog.tsx";
 import { NameFields } from "../components/NameFields.tsx";
 import { RulesDialog } from "../components/RulesDialog.tsx";
 import { api } from "../lib/api.ts";
@@ -43,6 +44,7 @@ export function Home() {
   const [bots, setBots] = useState(3);
   const [level, setLevel] = useState<"easy" | "normal" | "hard">("normal");
   const [rules, setRules] = useState(false);
+  const [legal, setLegal] = useState<LegalPage | null>(null);
   const reduce = useReducedMotion();
 
   useEffect(() => {
@@ -218,7 +220,27 @@ export function Home() {
         </button>
       </div>
 
+      <footer className="home-foot">
+        <span>Made by Loki</span>
+        <nav aria-label="About this site">
+          <button type="button" onClick={() => setLegal("privacy")}>
+            Privacy
+          </button>
+          <button type="button" onClick={() => setLegal("terms")}>
+            Terms
+          </button>
+          <button type="button" onClick={() => setLegal("credits")}>
+            Credits
+          </button>
+          <a href="https://github.com/LokeshKvms/uno/issues" target="_blank" rel="noopener noreferrer">
+            Feedback
+          </a>
+        </nav>
+        <p>UNO is a trademark of Mattel. This fan project is not affiliated with Mattel.</p>
+      </footer>
+
       <RulesDialog open={rules} onOpenChange={setRules} />
+      <LegalDialog page={legal} onClose={() => setLegal(null)} />
     </main>
   );
 }
