@@ -64,6 +64,7 @@ export interface RoomData {
   code: string;
   createdAt: number;
   lastHumanAt: number;
+  everConnected?: boolean;
   hostId: string;
   mode: Mode;
   status: "lobby" | "playing";
@@ -220,6 +221,7 @@ export class Room {
       this.afterControlChange(now);
     }
     this.data.lastHumanAt = now;
+    this.data.everConnected = true;
     this.bump();
   }
 

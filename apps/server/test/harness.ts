@@ -2,11 +2,11 @@ import { randomUUID } from "node:crypto";
 import type { AddressInfo } from "node:net";
 import type { Ack, ChatMessage, RoomAction, RoomSnapshot } from "@uno/protocol";
 import { type Socket, io } from "socket.io-client";
-import { buildServer } from "../src/app.ts";
+import { type ServerOptions, buildServer } from "../src/app.ts";
 import { MemoryStore, type RoomStore } from "../src/store.ts";
 
-export async function startServer(store: RoomStore = new MemoryStore()) {
-  const built = await buildServer({ store, sessionSecret: "test-secret-0123456789abcdef", tickMs: 40 });
+export async function startServer(store: RoomStore = new MemoryStore(), options: Partial<ServerOptions> = {}) {
+  const built = await buildServer({ store, sessionSecret: "test-secret-0123456789abcdef", tickMs: 40, ...options });
   await built.manager.load();
   built.manager.start();
   await built.app.listen({ port: 0, host: "127.0.0.1" });

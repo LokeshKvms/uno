@@ -24,6 +24,7 @@ import {
 } from "@uno/protocol";
 import { UserError } from "./errors.ts";
 import { sessionId as newSessionId } from "./ids.ts";
+import { tokenBucket } from "./limiter.ts";
 import { RoomManager } from "./manager.ts";
 import { type Room, ackError } from "./room.ts";
 import type { RoomStore } from "./store.ts";
@@ -38,6 +39,15 @@ export interface ServerOptions {
   allowedOrigins?: string[];
   logger?: boolean;
   tickMs?: number;
+  maxRooms?: number;
+  roomsPerMinute?: number;
+}
+
+const SOCKET_STRIKES = 60;
+
+export function clientIp(req: FastifyRequest): string {
+  const forwarded = req.headers["cf-connecting-ip"];
+  return typeof forwarded === "string" && forwarded ? forwarded : (req.socket.remoteAddress ?? req.ip);
 }
 
 type IoSocket = Socket<ClientToServer, ServerToClient, Record<string, never>, { sessionId: string; code: string }>;
@@ -70,11 +80,13 @@ export async function buildServer(options: ServerOptions) {
   await app.register(fastifyRateLimit, {
     max: 120,
     timeWindow: "1 minute",
+    keyGenerator: clientIp,
     allowList: (req) => !req.url.startsWith("/api/"),
   });
 
   const io = new SocketServer<ClientToServer, ServerToClient, Record<string, never>, { sessionId: string; code: string }>(app.server, {
     serveClient: false,
+    maxHttpBufferSize: 16_384,
     pingInterval: 20_000,
     pingTimeout: 20_000,
     connectionStateRecovery: undefined,
@@ -106,6 +118,7 @@ export async function buildServer(options: ServerOptions) {
   const manager = new RoomManager({
     store: options.store,
     tickMs: options.tickMs,
+    maxRooms: options.maxRooms,
     onChange: broadcast,
     onRemoved: (room, session, reason) => {
       const socket = sockets.get(socketKey(room.code, session));
@@ -168,7 +181,7 @@ export async function buildServer(options: ServerOptions) {
     return { room: room?.code ?? null, name: who?.name ?? "", avatar: who?.avatar ?? 0 };
   });
 
-  app.post("/api/rooms", async (req, reply) => {
+  app.post("/api/rooms", { config: { rateLimit: { max: options.roomsPerMinute ?? 10, timeWindow: "1 minute" } } }, async (req, reply) => {
     const session = ensureSession(req, reply);
     const input = parse(createRoomSchema, req.body);
     const room = manager.create(session, { name: input.name, avatar: input.avatar }, input.bots);
@@ -247,9 +260,18 @@ export async function buildServer(options: ServerOptions) {
     manager.changed(room);
 
     const recent = new Set<string>();
+    const limits = { command: tokenBucket(15, 30), chat: tokenBucket(3, 6), reaction: tokenBucket(3, 6), sync: tokenBucket(2, 4) };
+    let strikes = 0;
+    const allow = (kind: keyof typeof limits) => {
+      if (limits[kind]()) return true;
+      if (++strikes >= SOCKET_STRIKES) socket.disconnect(true);
+      return false;
+    };
+    const slowDown = { ok: false as const, error: "Slow down a little. Try again in a moment." };
 
     socket.on("command", (payload, ack) => {
       const reply = typeof ack === "function" ? ack : () => {};
+      if (!allow("command")) return reply(slowDown);
       const current = manager.get(code);
       if (!current) return reply({ ok: false, error: "This room has closed." });
       const parsed = commandSchema.safeParse(payload);
@@ -268,12 +290,14 @@ export async function buildServer(options: ServerOptions) {
         }
       } catch (error) {
         reply(ackError(error));
-        socket.emit("snapshot", current.snapshotFor(session)!);
+        const snapshot = current.snapshotFor(session);
+        if (snapshot) socket.emit("snapshot", snapshot);
       }
     });
 
     socket.on("chat", (payload, ack) => {
       const reply = typeof ack === "function" ? ack : () => {};
+      if (!allow("chat")) return reply(slowDown);
       const current = manager.get(code);
       if (!current) return reply({ ok: false, error: "This room has closed." });
       const parsed = chatSchema.safeParse(payload);
@@ -282,13 +306,14 @@ export async function buildServer(options: ServerOptions) {
         const message = current.chat(session, parsed.data.text);
         reply({ ok: true });
         emitToRoom(current, "chat", message);
-        manager.changed(current);
+        manager.touch(current);
       } catch (error) {
         reply(ackError(error));
       }
     });
 
     socket.on("reaction", (payload) => {
+      if (!allow("reaction")) return;
       const current = manager.get(code);
       const parsed = reactionSchema.safeParse(payload);
       if (!current || !parsed.success) return;
@@ -299,7 +324,7 @@ export async function buildServer(options: ServerOptions) {
         if (parsed.data.kind === "quick") {
           const message = current.quickChat(session, parsed.data.index);
           emitToRoom(current, "chat", message);
-          manager.changed(current);
+          manager.touch(current);
         } else if (parsed.data.index < REACTIONS.length) {
           emitToRoom(current, "reaction", { fromId, kind: "emoji", index: parsed.data.index });
         }
@@ -307,6 +332,7 @@ export async function buildServer(options: ServerOptions) {
     });
 
     socket.on("sync", () => {
+      if (!allow("sync")) return;
       const current = manager.get(code);
       const snapshot = current?.snapshotFor(session);
       if (snapshot) socket.emit("snapshot", snapshot);

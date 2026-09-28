@@ -7,6 +7,8 @@ import type { BotLevel } from "@uno/engine";
 
 const LOBBY_IDLE_MS = 2 * 60 * 60 * 1000;
 const GAME_IDLE_MS = 30 * 60 * 1000;
+const FRESH_LOBBY_IDLE_MS = 10 * 60 * 1000;
+const MAX_ROOMS = 300;
 
 export interface ManagerOptions {
   store: RoomStore;
@@ -14,6 +16,7 @@ export interface ManagerOptions {
   onRemoved?: (room: Room, sessionId: string, reason: string) => void;
   tickMs?: number;
   saveDelayMs?: number;
+  maxRooms?: number;
 }
 
 export class RoomManager {
@@ -71,6 +74,9 @@ export class RoomManager {
 
   create(sessionId: string, profile: Profile, bots?: { count: number; level: BotLevel }): Room {
     this.leaveCurrent(sessionId);
+    if (this.rooms.size >= (this.options.maxRooms ?? MAX_ROOMS)) {
+      throw new UserError("Every table is busy right now. Try again in a few minutes.", 503);
+    }
     let code = roomCode();
     while (this.rooms.has(code)) code = roomCode();
     const room = Room.create(code, sessionId, profile);
@@ -103,13 +109,17 @@ export class RoomManager {
     this.scheduleSave(room);
   }
 
+  touch(room: Room): void {
+    this.scheduleSave(room);
+  }
+
   async flush(): Promise<void> {
     const pending = [...this.dirty.keys()];
     for (const code of pending) {
       clearTimeout(this.dirty.get(code));
       this.dirty.delete(code);
       const room = this.rooms.get(code);
-      if (room) await this.options.store.save(room.data);
+      if (room) await this.options.store.save(room.data).catch((error) => console.error(`[uno] save failed for ${code}`, error));
     }
   }
 
@@ -155,7 +165,7 @@ export class RoomManager {
 
   private scheduleSave(room: Room): void {
     if (this.dirty.has(room.code)) return;
-    const delay = this.options.saveDelayMs ?? 300;
+    const delay = this.options.saveDelayMs ?? 1000;
     this.dirty.set(
       room.code,
       setTimeout(() => {
@@ -169,7 +179,7 @@ export class RoomManager {
   private async sweep(now = Date.now()): Promise<void> {
     for (const room of [...this.rooms.values()]) {
       const idle = now - room.data.lastHumanAt;
-      const limit = room.data.status === "lobby" ? LOBBY_IDLE_MS : GAME_IDLE_MS;
+      const limit = room.data.status === "playing" ? GAME_IDLE_MS : room.data.everConnected ? LOBBY_IDLE_MS : FRESH_LOBBY_IDLE_MS;
       if (!room.hasConnectedHumans() && idle > limit) await this.remove(room.code);
     }
   }
