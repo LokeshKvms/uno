@@ -312,6 +312,7 @@ function soundsFor(fresh: LogEntry[], snap: RoomSnapshot) {
   for (const entry of fresh) {
     if (entry.kind === "room") {
       if (entry.type === "joined") play("join", delay);
+      if (entry.type === "left" || entry.type === "removed") play("leave", delay);
       continue;
     }
     const e = entry.event;

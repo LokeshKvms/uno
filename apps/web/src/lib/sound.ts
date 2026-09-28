@@ -22,7 +22,16 @@ export type SoundName =
   | "tap"
   | "select"
   | "copy"
-  | "ready";
+  | "ready"
+  | "leave"
+  | "key"
+  | "keyWide";
+
+export interface Voice {
+  c: BaseAudioContext;
+  out: AudioNode;
+  noise: AudioBuffer;
+}
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -39,11 +48,16 @@ function audio(): AudioContext | null {
     master = ctx.createGain();
     master.gain.value = volume;
     master.connect(ctx.destination);
-    noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
-    const data = noise.getChannelData(0);
-    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+    noise = whiteNoise(ctx);
   }
   return ctx;
+}
+
+export function whiteNoise(c: BaseAudioContext): AudioBuffer {
+  const buffer = c.createBuffer(1, c.sampleRate, c.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  return buffer;
 }
 
 export function unlockAudio() {
@@ -72,8 +86,7 @@ export function getVolume() {
   return volume;
 }
 
-function tone(freq: number, start: number, dur: number, type: OscillatorType = "sine", gain = 0.2, endFreq?: number) {
-  const c = ctx!;
+function tone({ c, out }: Voice, freq: number, start: number, dur: number, type: OscillatorType = "sine", gain = 0.2, endFreq?: number) {
   const osc = c.createOscillator();
   const g = c.createGain();
   osc.type = type;
@@ -82,13 +95,12 @@ function tone(freq: number, start: number, dur: number, type: OscillatorType = "
   g.gain.setValueAtTime(0.0001, start);
   g.gain.exponentialRampToValueAtTime(gain, start + 0.008);
   g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
-  osc.connect(g).connect(master!);
+  osc.connect(g).connect(out);
   osc.start(start);
   osc.stop(start + dur + 0.02);
 }
 
-function burst(start: number, dur: number, freq: number, q = 1, gain = 0.3, sweepTo?: number) {
-  const c = ctx!;
+function burst({ c, out, noise }: Voice, start: number, dur: number, freq: number, q = 1, gain = 0.3, sweepTo?: number) {
   const src = c.createBufferSource();
   src.buffer = noise;
   const filter = c.createBiquadFilter();
@@ -100,75 +112,95 @@ function burst(start: number, dur: number, freq: number, q = 1, gain = 0.3, swee
   g.gain.setValueAtTime(0.0001, start);
   g.gain.exponentialRampToValueAtTime(gain, start + 0.004);
   g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
-  src.connect(filter).connect(g).connect(master!);
+  src.connect(filter).connect(g).connect(out);
   src.start(start, Math.random() * 0.5);
   src.stop(start + dur + 0.02);
 }
 
-const recipes: Record<SoundName, (t: number) => void> = {
-  card: (t) => {
-    burst(t, 0.07, 2600, 0.9, 0.45);
-    tone(170, t, 0.08, "sine", 0.12, 90);
+export const recipes: Record<SoundName, (k: Voice, t: number) => void> = {
+  card: (k, t) => {
+    burst(k, t, 0.07, 2600, 0.9, 0.45);
+    tone(k, 170, t, 0.08, "sine", 0.12, 90);
   },
-  draw: (t) => burst(t, 0.16, 1400, 0.7, 0.22, 3200),
-  deal: (t) => burst(t, 0.05, 3000, 1, 0.25),
-  shuffle: (t) => {
-    for (let i = 0; i < 14; i++) burst(t + i * 0.035 + Math.random() * 0.012, 0.05, 2200 + Math.random() * 1400, 1, 0.18);
+  draw: (k, t) => burst(k, t, 0.16, 1400, 0.7, 0.22, 3200),
+  deal: (k, t) => burst(k, t, 0.05, 3000, 1, 0.25),
+  shuffle: (k, t) => {
+    for (let i = 0; i < 14; i++) burst(k, t + i * 0.035 + Math.random() * 0.012, 0.05, 2200 + Math.random() * 1400, 1, 0.18);
   },
-  turn: (t) => {
-    tone(784, t, 0.18, "sine", 0.16);
-    tone(1175, t + 0.09, 0.3, "sine", 0.14);
+  turn: (k, t) => {
+    tone(k, 784, t, 0.18, "sine", 0.16);
+    tone(k, 1175, t + 0.09, 0.3, "sine", 0.14);
   },
-  skip: (t) => {
-    tone(220, t, 0.16, "triangle", 0.28, 110);
-    burst(t, 0.05, 900, 1, 0.2);
+  skip: (k, t) => {
+    tone(k, 220, t, 0.16, "triangle", 0.28, 110);
+    burst(k, t, 0.05, 900, 1, 0.2);
   },
-  reverse: (t) => {
-    burst(t, 0.22, 600, 1.2, 0.2, 2600);
-    burst(t + 0.18, 0.22, 2600, 1.2, 0.16, 600);
+  reverse: (k, t) => {
+    burst(k, t, 0.22, 600, 1.2, 0.2, 2600);
+    burst(k, t + 0.18, 0.22, 2600, 1.2, 0.16, 600);
   },
-  penalty: (t) => {
-    tone(196, t, 0.14, "square", 0.08, 150);
-    tone(147, t + 0.12, 0.2, "square", 0.08, 110);
+  penalty: (k, t) => {
+    tone(k, 196, t, 0.14, "square", 0.08, 150);
+    tone(k, 147, t + 0.12, 0.2, "square", 0.08, 110);
   },
-  wild: (t) => [523, 659, 784, 1047].forEach((f, i) => tone(f, t + i * 0.055, 0.24, "triangle", 0.1)),
-  uno: (t) => {
-    tone(659, t, 0.1, "square", 0.07);
-    tone(988, t + 0.08, 0.34, "square", 0.08);
-    tone(1319, t + 0.08, 0.34, "sine", 0.08);
+  wild: (k, t) => [523, 659, 784, 1047].forEach((f, i) => tone(k, f, t + i * 0.055, 0.24, "triangle", 0.1)),
+  uno: (k, t) => {
+    tone(k, 659, t, 0.1, "square", 0.07);
+    tone(k, 988, t + 0.08, 0.34, "square", 0.08);
+    tone(k, 1319, t + 0.08, 0.34, "sine", 0.08);
   },
-  caught: (t) => {
-    tone(440, t, 0.12, "sawtooth", 0.06, 330);
-    tone(330, t + 0.12, 0.22, "sawtooth", 0.06, 220);
+  caught: (k, t) => {
+    tone(k, 440, t, 0.12, "sawtooth", 0.06, 330);
+    tone(k, 330, t + 0.12, 0.22, "sawtooth", 0.06, 220);
   },
-  catchable: (t) => {
-    tone(880, t, 0.07, "triangle", 0.08);
-    tone(1175, t + 0.09, 0.12, "triangle", 0.08);
+  catchable: (k, t) => {
+    tone(k, 880, t, 0.07, "triangle", 0.08);
+    tone(k, 1175, t + 0.09, 0.12, "triangle", 0.08);
   },
-  tick: (t) => tone(1600, t, 0.03, "square", 0.04),
-  win: (t) => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, t + i * 0.09, i === 4 ? 0.6 : 0.2, "triangle", 0.12)),
-  lose: (t) => [392, 330, 262].forEach((f, i) => tone(f, t + i * 0.14, 0.28, "triangle", 0.1)),
-  chat: (t) => tone(1046, t, 0.07, "sine", 0.07, 1400),
-  error: (t) => {
-    tone(260, t, 0.08, "square", 0.05);
-    tone(220, t + 0.1, 0.1, "square", 0.05);
+  tick: (k, t) => tone(k, 1600, t, 0.03, "square", 0.04),
+  win: (k, t) => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(k, f, t + i * 0.09, i === 4 ? 0.6 : 0.2, "triangle", 0.12)),
+  lose: (k, t) => [392, 330, 262].forEach((f, i) => tone(k, f, t + i * 0.14, 0.28, "triangle", 0.1)),
+  chat: (k, t) => tone(k, 1046, t, 0.07, "sine", 0.07, 1400),
+  error: (k, t) => {
+    tone(k, 260, t, 0.08, "square", 0.05);
+    tone(k, 220, t + 0.1, 0.1, "square", 0.05);
   },
-  join: (t) => {
-    tone(587, t, 0.12, "sine", 0.1);
-    tone(880, t + 0.1, 0.2, "sine", 0.1);
+  join: (k, t) => {
+    tone(k, 587, t, 0.12, "sine", 0.1);
+    tone(k, 880, t + 0.1, 0.2, "sine", 0.1);
   },
-  tap: (t) => {
-    burst(t, 0.03, 3400, 1.4, 0.1);
-    tone(640, t, 0.06, "sine", 0.05, 520);
+  tap: (k, t) => {
+    burst(k, t, 0.04, 1500, 1.1, 0.26);
+    burst(k, t, 0.012, 4800, 2, 0.07);
+    tone(k, 125, t, 0.06, "sine", 0.1, 80);
   },
-  select: (t) => tone(1320, t, 0.035, "sine", 0.045),
-  copy: (t) => {
-    tone(988, t, 0.08, "sine", 0.06);
-    tone(1480, t + 0.06, 0.14, "sine", 0.05);
+  select: (k, t) => {
+    burst(k, t, 0.02, 3600 + Math.random() * 300, 2.2, 0.16);
+    tone(k, 210, t, 0.03, "sine", 0.035, 150);
   },
-  ready: (t) => {
-    tone(660, t, 0.09, "triangle", 0.07);
-    tone(990, t + 0.07, 0.18, "triangle", 0.07);
+  copy: (k, t) => {
+    tone(k, 988, t, 0.08, "sine", 0.06);
+    tone(k, 1480, t + 0.06, 0.14, "sine", 0.05);
+  },
+  ready: (k, t) => {
+    tone(k, 660, t, 0.09, "triangle", 0.07);
+    tone(k, 990, t + 0.07, 0.18, "triangle", 0.07);
+  },
+  leave: (k, t) => {
+    tone(k, 880, t, 0.1, "sine", 0.08);
+    tone(k, 587, t + 0.09, 0.22, "sine", 0.08, 540);
+  },
+  key: (k, t) => {
+    const shift = 1 + (Math.random() - 0.5) * 0.14;
+    burst(k, t, 0.01, 4200 * shift, 1.2, 0.075);
+    burst(k, t + 0.002, 0.035, 540 * shift, 2.4, 0.105);
+    tone(k, 165 * shift, t, 0.03, "sine", 0.045, 120);
+  },
+  keyWide: (k, t) => {
+    const shift = 1 + (Math.random() - 0.5) * 0.08;
+    burst(k, t, 0.012, 3400 * shift, 1.2, 0.065);
+    burst(k, t + 0.003, 0.05, 400 * shift, 2.2, 0.105);
+    tone(k, 120 * shift, t, 0.045, "sine", 0.045, 90);
   },
 };
 
@@ -177,7 +209,7 @@ export function play(name: SoundName, delayMs = 0) {
   const c = audio();
   if (!c || c.state !== "running" || !master || !noise) return;
   try {
-    recipes[name](c.currentTime + delayMs / 1000);
+    recipes[name]({ c, out: master, noise }, c.currentTime + delayMs / 1000);
   } catch {}
 }
 
