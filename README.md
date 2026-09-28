@@ -76,7 +76,7 @@ docker run --rm -p 3001:3001 -e SESSION_SECRET=change-me uno
 1. Create a database on [Turso](https://turso.tech) and note its URL and auth token.
 2. In Render, create a new Blueprint from this repository. `render.yaml` provisions a free Docker web service in Singapore with a health check on `/healthz`.
 3. Set `DATABASE_URL` and `DATABASE_AUTH_TOKEN`. `SESSION_SECRET` is generated automatically.
-4. Free services sleep after 15 minutes of inactivity. To keep the service warm, schedule a request to `/healthz` every 10 minutes, for example with [cron-job.org](https://cron-job.org).
+4. Free services sleep after 15 minutes of inactivity. The `Keep alive` workflow pings `/healthz` every 10 minutes to keep the service warm; update its URL if you deploy under a different name.
 
 ## Configuration
 
