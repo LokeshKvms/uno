@@ -70,7 +70,7 @@ export function GameView() {
   const seatExtras = (seat: SeatInfo) =>
     catchable?.id === seat.id ? (
       <Tip label={`${seat.name} is on one card and didn't call UNO. Catch them for +2.`} kbd="C">
-        <button className="catch-btn" disabled={busy} onClick={catchThem}>
+        <button className="catch-btn" data-sound="none" disabled={busy} onClick={catchThem}>
           Catch!
         </button>
       </Tip>
@@ -156,6 +156,7 @@ function GameCenter() {
         <Tip label={drawLabel} kbd={game.canDraw ? "D" : undefined}>
           <button
             className={`draw-pile ${game.canDraw ? "is-live" : ""}`}
+            data-sound="none"
             data-anchor="deck"
             aria-label={drawLabel}
             aria-disabled={!game.canDraw || busy}

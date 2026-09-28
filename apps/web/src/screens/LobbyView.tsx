@@ -45,10 +45,10 @@ export function LobbyView() {
   const center = (
     <div className="lobby-center">
       <p className="lobby-label">Table code</p>
-      <button className="lobby-code tabular" onClick={() => void copyLink()} aria-label={`Table code ${snap.code}. Copy invite link`}>
+      <button className="lobby-code tabular" data-sound="none" onClick={() => void copyLink()} aria-label={`Table code ${snap.code}. Copy invite link`}>
         {snap.code}
       </button>
-      <button className="btn btn-sm lobby-copy" onClick={() => void copyLink()}>
+      <button className="btn btn-sm lobby-copy" data-sound="none" onClick={() => void copyLink()}>
         {copied ? <Check size={16} weight="bold" /> : <Copy size={16} weight="bold" />}
         {copied ? "Link copied" : "Copy invite link"}
       </button>
@@ -64,15 +64,7 @@ export function LobbyView() {
             }
             side="bottom"
           >
-            <button
-              role="radio"
-              aria-checked={snap.mode === m}
-              disabled={!isHost || busy}
-              onClick={() => {
-                if (snap.mode !== m) play("select");
-                void send({ type: "settings", mode: m });
-              }}
-            >
+            <button role="radio" aria-checked={snap.mode === m} disabled={!isHost || busy} onClick={() => void send({ type: "settings", mode: m })}>
               {m === "single" ? "Quick game" : "Race to 500"}
             </button>
           </Tip>
@@ -81,30 +73,21 @@ export function LobbyView() {
 
       {snap.role === "player" &&
         (isHost ? (
-          <button className="btn btn-primary lobby-start" disabled={!canStart || busy} onClick={() => void send({ type: "start" })}>
+          <button className="btn btn-primary lobby-start" data-sound="none" disabled={!canStart || busy} onClick={() => void send({ type: "start" })}>
             Deal the cards
           </button>
         ) : (
           <button
             className={`btn lobby-start ${me?.ready ? "" : "btn-primary"}`}
+            data-sound={me?.ready ? "select" : "ready"}
             disabled={busy}
-            onClick={() => {
-              play(me?.ready ? "select" : "ready");
-              void send({ type: "ready", ready: !me?.ready });
-            }}
+            onClick={() => void send({ type: "ready", ready: !me?.ready })}
           >
             {me?.ready ? "Not ready" : "Ready"}
           </button>
         ))}
       {snap.role === "spectator" && !full && (
-        <button
-          className="btn btn-primary lobby-start"
-          disabled={busy}
-          onClick={() => {
-            play("tap");
-            void send({ type: "takeSeat" });
-          }}
-        >
+        <button className="btn btn-primary lobby-start" disabled={busy} onClick={() => void send({ type: "takeSeat" })}>
           Take a seat
         </button>
       )}
@@ -114,28 +97,13 @@ export function LobbyView() {
         <div className="lobby-bots">
           <div className="segmented segmented-sm" role="radiogroup" aria-label="Bot difficulty">
             {(["easy", "normal", "hard"] as const).map((l) => (
-              <button
-                key={l}
-                role="radio"
-                aria-checked={botLevel === l}
-                onClick={() => {
-                  if (botLevel !== l) play("select");
-                  setBotLevel(l);
-                }}
-              >
+              <button key={l} role="radio" aria-checked={botLevel === l} onClick={() => setBotLevel(l)}>
                 {l[0]!.toUpperCase() + l.slice(1)}
               </button>
             ))}
           </div>
           <Tip label="Fill an empty seat with a computer player" side="bottom">
-            <button
-              className="btn btn-sm"
-              disabled={busy}
-              onClick={() => {
-                play("join");
-                void send({ type: "addBot", level: botLevel });
-              }}
-            >
+            <button className="btn btn-sm" data-sound="join" disabled={busy} onClick={() => void send({ type: "addBot", level: botLevel })}>
               <Robot size={16} weight="bold" />
               Add bot
             </button>
@@ -150,10 +118,10 @@ export function LobbyView() {
       <Tip label={seat.kind === "bot" ? "Remove this bot" : `Remove ${seat.name} from the table`}>
         <button
           className="seat-remove"
+          data-sound={seat.kind === "bot" ? "leave" : "none"}
           aria-label={seat.kind === "bot" ? `Remove ${seat.name}` : `Remove ${seat.name}`}
           onClick={(e) => {
             e.stopPropagation();
-            if (seat.kind === "bot") play("leave");
             void send({ type: "removeSeat", seatId: seat.id });
           }}
         >
@@ -175,7 +143,7 @@ export function LobbyView() {
         seatExtras={seatExtras}
         extraSlots={
           !full && compact ? (
-            <button className="strip-open" onClick={() => void copyLink()}>
+            <button className="strip-open" data-sound="none" onClick={() => void copyLink()}>
               <Plus size={16} weight="bold" />
               Invite
             </button>

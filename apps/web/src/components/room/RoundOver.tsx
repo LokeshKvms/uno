@@ -105,7 +105,7 @@ export function RoundOver() {
                 <>
                   <p className="roundover-wait tabular">{left > 0 ? `Next round in ${left}s` : "Dealing..."}</p>
                   {isHost && (
-                    <button className="btn btn-primary" disabled={busy} onClick={() => void send({ type: "nextRound" })}>
+                    <button className="btn btn-primary" data-sound="none" disabled={busy} onClick={() => void send({ type: "nextRound" })}>
                       Deal now
                     </button>
                   )}

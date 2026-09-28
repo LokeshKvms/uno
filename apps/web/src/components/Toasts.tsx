@@ -19,7 +19,7 @@ export function Toasts() {
             transition={{ type: "spring", stiffness: 420, damping: 32 }}
           >
             <p>{t.text}</p>
-            <button aria-label="Dismiss" onClick={() => dismiss(t.id)}>
+            <button aria-label="Dismiss" data-sound="select" onClick={() => dismiss(t.id)}>
               <X size={16} weight="bold" />
             </button>
           </motion.div>

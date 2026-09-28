@@ -35,10 +35,10 @@ export function ChallengePanel() {
       </div>
       <div className="dialog-actions">
         <span className="challenge-timer tabular">{left > 0 ? `${left}s` : ""}</span>
-        <button className="btn" disabled={busy} onClick={() => void send({ type: "challenge", challenge: false })}>
+        <button className="btn" data-sound="none" disabled={busy} onClick={() => void send({ type: "challenge", challenge: false })}>
           Take four
         </button>
-        <button className="btn btn-move" disabled={busy} onClick={() => void send({ type: "challenge", challenge: true })}>
+        <button className="btn btn-move" data-sound="none" disabled={busy} onClick={() => void send({ type: "challenge", challenge: true })}>
           Challenge
         </button>
       </div>

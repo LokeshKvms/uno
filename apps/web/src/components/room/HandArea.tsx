@@ -164,7 +164,7 @@ export function HandArea({ onWild, catchable, onCatch }: { onWild: (p: PendingWi
           </Tip>
           {game.canDraw && (
             <Tip label="Draw one card" kbd="D">
-              <button className="btn btn-sm" disabled={busy} onClick={() => void act({ type: "draw" })}>
+              <button className="btn btn-sm" data-sound="none" disabled={busy} onClick={() => void act({ type: "draw" })}>
                 Draw
               </button>
             </Tip>
@@ -178,7 +178,7 @@ export function HandArea({ onWild, catchable, onCatch }: { onWild: (p: PendingWi
           )}
           {catchable && (
             <Tip label={`${catchable.name} didn't call UNO. Catch them before the next player moves and they draw two.`} kbd="C">
-              <button className="btn btn-sm btn-catch" disabled={busy} onClick={onCatch}>
+              <button className="btn btn-sm btn-catch" data-sound="none" disabled={busy} onClick={onCatch}>
                 <span className="btn-catch-label">
                   Catch<span className="hide-phone"> {catchable.name}</span>!
                 </span>
@@ -200,6 +200,7 @@ export function HandArea({ onWild, catchable, onCatch }: { onWild: (p: PendingWi
             <button
               className={`uno-btn ${armed ? "is-armed" : ""} ${mustCall ? "is-urgent" : ""}`}
               aria-pressed={armed || undefined}
+              data-sound={mustCall || armed ? "none" : "select"}
               aria-disabled={!(canArm || mustCall) || busy}
               onClick={unoAction}
             >
@@ -272,7 +273,7 @@ function Hand({ cards, playable, myTurn, drawnId, reasonFor, onPlay }: HandProps
               transition={{ type: "spring", stiffness: 380, damping: 32 }}
             >
               <Tip label={reasonFor(card)} side="top">
-                <button className="hand-card-btn" aria-label={reasonFor(card)} aria-disabled={!isPlayable} onClick={() => onPlay(card)}>
+                <button className="hand-card-btn" data-sound="none" aria-label={reasonFor(card)} aria-disabled={!isPlayable} onClick={() => onPlay(card)}>
                   <Card card={card} />
                 </button>
               </Tip>

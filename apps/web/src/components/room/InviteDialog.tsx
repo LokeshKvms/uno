@@ -46,7 +46,7 @@ export function InviteDialog({ open, onOpenChange, code }: { open: boolean; onOp
           </label>
           <div className="invite-row">
             <input id="invite-link" className="input" readOnly value={link} onFocus={(e) => e.currentTarget.select()} />
-            <button className="btn btn-primary" onClick={() => void copy()}>
+            <button className="btn btn-primary" data-sound="none" onClick={() => void copy()}>
               {copied ? <Check size={18} weight="bold" /> : <Copy size={18} weight="bold" />}
               {copied ? "Copied" : "Copy"}
             </button>

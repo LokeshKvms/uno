@@ -102,10 +102,12 @@ export function Home() {
           className="icon-btn"
           aria-pressed={sound}
           aria-label={sound ? "Mute sounds" : "Turn sounds on"}
+          data-sound="none"
           title={sound ? "Mute sounds" : "Turn sounds on"}
           onClick={() => {
             setSoundEnabled(!sound);
             setSound(!sound);
+            if (!sound) play("select");
           }}
         >
           {sound ? <SpeakerHigh size={20} weight="bold" /> : <SpeakerSlash size={20} weight="bold" />}
@@ -142,14 +144,13 @@ export function Home() {
             avatar={avatar}
             onName={setName}
             onAvatar={(v) => {
-              if (v !== avatar) play("select");
               setAvatar(v);
             }}
             error={nameError}
           />
 
           <div className="home-actions">
-            <button type="submit" className="btn btn-primary home-create" disabled={busy !== null}>
+            <button type="submit" data-sound="none" className="btn btn-primary home-create" disabled={busy !== null}>
               <Users size={18} weight="bold" />
               {busy === "create" ? "Setting up..." : "Create a table"}
             </button>
@@ -180,7 +181,7 @@ export function Home() {
               inputMode="text"
               aria-describedby="home-code-help"
             />
-            <button type="submit" className="btn" disabled={busy !== null || code.length !== 6}>
+            <button type="submit" data-sound="none" className="btn" disabled={busy !== null || code.length !== 6}>
               {busy === "join" ? "Joining..." : "Join"}
             </button>
           </div>
@@ -203,7 +204,6 @@ export function Home() {
                   role="radio"
                   aria-checked={bots === n}
                   onClick={() => {
-                    if (bots !== n) play("select");
                     setBots(n);
                   }}
                 >
@@ -219,7 +219,6 @@ export function Home() {
                   role="radio"
                   aria-checked={level === l}
                   onClick={() => {
-                    if (level !== l) play("select");
                     setLevel(l);
                   }}
                 >
@@ -227,7 +226,7 @@ export function Home() {
                 </button>
               ))}
             </div>
-            <button type="button" className="btn btn-sm" disabled={busy !== null} onClick={() => void go("bots")}>
+            <button type="button" data-sound="none" className="btn btn-sm" disabled={busy !== null} onClick={() => void go("bots")}>
               {busy === "bots" ? "Starting..." : "Start game"}
             </button>
           </div>
@@ -282,13 +281,13 @@ export function Home() {
       <footer className="home-foot">
         <span>Made by Loki</span>
         <nav aria-label="About this site">
-          <button type="button" onClick={() => setLegal("privacy")}>
+          <button type="button" data-sound="select" onClick={() => setLegal("privacy")}>
             Privacy
           </button>
-          <button type="button" onClick={() => setLegal("terms")}>
+          <button type="button" data-sound="select" onClick={() => setLegal("terms")}>
             Terms
           </button>
-          <button type="button" onClick={() => setLegal("credits")}>
+          <button type="button" data-sound="select" onClick={() => setLegal("credits")}>
             Credits
           </button>
           <a href="https://github.com/LokeshKvms/uno/issues" target="_blank" rel="noopener noreferrer">

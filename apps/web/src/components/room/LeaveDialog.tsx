@@ -29,10 +29,10 @@ export function LeaveDialog({ open, onOpenChange }: { open: boolean; onOpenChang
       }
     >
       <div className="dialog-actions">
-        <button className="btn" onClick={() => onOpenChange(false)}>
+        <button className="btn" data-sound="select" onClick={() => onOpenChange(false)}>
           Stay
         </button>
-        <button className="btn btn-primary" disabled={busy} onClick={() => void leave()}>
+        <button className="btn btn-primary" data-sound="leave" disabled={busy} onClick={() => void leave()}>
           Leave table
         </button>
       </div>

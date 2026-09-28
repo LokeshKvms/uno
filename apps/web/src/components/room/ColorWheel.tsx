@@ -91,6 +91,7 @@ export function ColorWheel({ pending, opening, onCancel, onChosen }: ColorWheelP
                 <button
                   key={c}
                   className="wheel-swatch"
+                  data-sound="none"
                   style={{ "--swatch": SWATCH[c] } as React.CSSProperties}
                   disabled={busy}
                   onClick={() => void choose(c)}

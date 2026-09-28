@@ -93,12 +93,11 @@ export function JoinGate({ code }: { code: string }) {
                   setError("");
                 }}
                 onAvatar={(v) => {
-                  if (v !== avatar) play("select");
                   setAvatar(v);
                 }}
                 error={error}
               />
-              <button type="submit" className="btn btn-primary" disabled={busy || !preview}>
+              <button type="submit" data-sound="none" className="btn btn-primary" disabled={busy || !preview}>
                 {busy ? "Sitting down..." : preview?.status === "playing" ? "Watch this game" : "Take a seat"}
               </button>
             </form>

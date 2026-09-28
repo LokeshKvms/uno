@@ -58,7 +58,7 @@ export function TopBar({ onLeave }: { onLeave: () => void }) {
         </button>
       </Tip>
       <Tip label={copied ? "Copied" : "Copy the table code"} side="bottom">
-        <button className="code-chip tabular" onClick={() => void copyCode()} aria-label={`Table code ${snap.code}. Copy`}>
+        <button className="code-chip tabular" data-sound="none" onClick={() => void copyCode()} aria-label={`Table code ${snap.code}. Copy`}>
           {snap.code}
           {copied ? <Check size={14} weight="bold" /> : <Copy size={14} weight="bold" />}
         </button>
@@ -82,9 +82,11 @@ export function TopBar({ onLeave }: { onLeave: () => void }) {
             className="icon-btn"
             aria-pressed={sound}
             aria-label={sound ? "Mute sounds" : "Turn sounds on"}
+            data-sound="none"
             onClick={() => {
               setSoundEnabled(!sound);
               setSound(!sound);
+              if (!sound) play("select");
             }}
           >
             {sound ? <SpeakerHigh size={20} weight="bold" /> : <SpeakerSlash size={20} weight="bold" />}
