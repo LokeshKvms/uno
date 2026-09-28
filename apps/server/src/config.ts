@@ -24,5 +24,6 @@ export const config = {
 };
 
 if (config.isProd && !process.env.SESSION_SECRET) {
-  console.warn("[uno] SESSION_SECRET is not set; sessions will not survive a secret change. Set it in production.");
+  console.error("[uno] SESSION_SECRET must be set in production.");
+  process.exit(1);
 }
