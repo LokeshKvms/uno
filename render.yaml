@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: uno
+    name: lokis-uno
     runtime: docker
     plan: free
     region: singapore
