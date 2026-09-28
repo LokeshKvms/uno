@@ -7,6 +7,7 @@ import { type LegalPage, LegalDialog } from "../components/LegalDialog.tsx";
 import { NameFields } from "../components/NameFields.tsx";
 import { RulesDialog } from "../components/RulesDialog.tsx";
 import { api } from "../lib/api.ts";
+import { MusicNotesSlash } from "../components/MusicNotesSlash.tsx";
 import { setMusicEnabled, useMusicEnabled } from "../lib/music.ts";
 import { play, setSoundEnabled, soundEnabled } from "../lib/sound.ts";
 import { useStore } from "../lib/store.ts";
@@ -117,7 +118,7 @@ export function Home() {
           title={music ? "Turn music off" : "Play background music"}
           onClick={() => setMusicEnabled(!music)}
         >
-          <MusicNotes size={20} weight="bold" />
+          {music ? <MusicNotes size={20} weight="bold" /> : <MusicNotesSlash size={20} />}
         </button>
       </div>
 

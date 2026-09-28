@@ -1,5 +1,6 @@
 import { BookOpen, ChatCircleText, Check, Copy, CornersIn, CornersOut, MusicNotes, SignOut, SpeakerHigh, SpeakerSlash, UserPlus } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
+import { MusicNotesSlash } from "../MusicNotesSlash.tsx";
 import { setMusicEnabled, useMusicEnabled } from "../../lib/music.ts";
 import { play, setSoundEnabled, soundEnabled } from "../../lib/sound.ts";
 import { useStore } from "../../lib/store.ts";
@@ -96,7 +97,7 @@ export function TopBar({ onLeave }: { onLeave: () => void }) {
             aria-label={music ? "Turn music off" : "Play background music"}
             onClick={() => setMusicEnabled(!music)}
           >
-            <MusicNotes size={20} weight="bold" />
+            {music ? <MusicNotes size={20} weight="bold" /> : <MusicNotesSlash size={20} />}
           </button>
         </Tip>
         {document.fullscreenEnabled && (
