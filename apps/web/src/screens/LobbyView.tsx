@@ -153,10 +153,11 @@ export function LobbyView() {
           aria-label={seat.kind === "bot" ? `Remove ${seat.name}` : `Remove ${seat.name}`}
           onClick={(e) => {
             e.stopPropagation();
+            if (seat.kind === "bot") play("leave");
             void send({ type: "removeSeat", seatId: seat.id });
           }}
         >
-          <X size={12} weight="bold" />
+          <X size={14} weight="bold" />
         </button>
       </Tip>
     ) : null;

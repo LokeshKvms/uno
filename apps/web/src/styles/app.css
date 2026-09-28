@@ -1298,28 +1298,26 @@
   }
 }
 .seat-remove {
-  position: absolute;
-  top: -6px;
-  right: -6px;
+  flex: none;
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
+  margin: 0 -6px 0 auto;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
-  border: 1px solid var(--line-strong);
-  background: var(--slate-2);
-  color: var(--chalk-2);
-  opacity: 0;
-  transition: opacity 0.15s;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    color 0.15s,
+    background-color 0.15s;
 }
-.seat:hover .seat-remove,
-.seat:focus-within .seat-remove {
-  opacity: 1;
-}
-@media (hover: none) {
-  .seat-remove {
-    opacity: 1;
-  }
+.seat-remove:hover,
+.seat-remove:focus-visible {
+  color: var(--danger);
+  background: #ef6b5e1f;
 }
 
 .reaction-float {
