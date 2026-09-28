@@ -18,7 +18,11 @@ export type SoundName =
   | "lose"
   | "chat"
   | "error"
-  | "join";
+  | "join"
+  | "tap"
+  | "select"
+  | "copy"
+  | "ready";
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -45,6 +49,10 @@ function audio(): AudioContext | null {
 export function unlockAudio() {
   const c = audio();
   if (c && c.state === "suspended") void c.resume();
+}
+
+export function audioContext(): AudioContext | null {
+  return audio();
 }
 
 export function setSoundEnabled(on: boolean) {
@@ -148,6 +156,19 @@ const recipes: Record<SoundName, (t: number) => void> = {
   join: (t) => {
     tone(587, t, 0.12, "sine", 0.1);
     tone(880, t + 0.1, 0.2, "sine", 0.1);
+  },
+  tap: (t) => {
+    burst(t, 0.03, 3400, 1.4, 0.1);
+    tone(640, t, 0.06, "sine", 0.05, 520);
+  },
+  select: (t) => tone(1320, t, 0.035, "sine", 0.045),
+  copy: (t) => {
+    tone(988, t, 0.08, "sine", 0.06);
+    tone(1480, t + 0.06, 0.14, "sine", 0.05);
+  },
+  ready: (t) => {
+    tone(660, t, 0.09, "triangle", 0.07);
+    tone(990, t + 0.07, 0.18, "triangle", 0.07);
   },
 };
 

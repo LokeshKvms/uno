@@ -1,5 +1,6 @@
 import { Check, Copy, ShareNetwork } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
+import { play } from "../../lib/sound.ts";
 import { Dialog } from "../Dialog.tsx";
 
 export function InviteDialog({ open, onOpenChange, code }: { open: boolean; onOpenChange: (o: boolean) => void; code: string }) {
@@ -23,6 +24,7 @@ export function InviteDialog({ open, onOpenChange, code }: { open: boolean; onOp
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(link);
+      play("copy");
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
     } catch {

@@ -4,6 +4,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import { Card } from "../components/Card.tsx";
 import { NameFields } from "../components/NameFields.tsx";
 import { api } from "../lib/api.ts";
+import { play } from "../lib/sound.ts";
 import { useStore } from "../lib/store.ts";
 
 export function JoinGate({ code }: { code: string }) {
@@ -36,6 +37,7 @@ export function JoinGate({ code }: { code: string }) {
       setError("Enter a name so your friends know who's who.");
       return;
     }
+    play("tap");
     setBusy(true);
     try {
       await api.joinRoom(code, clean, avatar);
@@ -90,7 +92,10 @@ export function JoinGate({ code }: { code: string }) {
                   setName(v);
                   setError("");
                 }}
-                onAvatar={setAvatar}
+                onAvatar={(v) => {
+                  if (v !== avatar) play("select");
+                  setAvatar(v);
+                }}
                 error={error}
               />
               <button type="submit" className="btn btn-primary" disabled={busy || !preview}>

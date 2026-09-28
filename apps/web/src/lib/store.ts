@@ -318,7 +318,8 @@ function soundsFor(fresh: LogEntry[], snap: RoomSnapshot) {
     switch (e.type) {
       case "roundStart":
         play("shuffle", delay);
-        delay += 450;
+        for (let i = 0; i < 7; i++) play("deal", delay + 480 + i * 70);
+        delay += 960;
         break;
       case "play":
         play("card", delay);
