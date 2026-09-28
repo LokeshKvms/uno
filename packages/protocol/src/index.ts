@@ -12,7 +12,8 @@ const nameSchema = z
       .string()
       .min(1, { error: "Enter a name." })
       .max(NAME_MAX, { error: `Keep your name to ${NAME_MAX} characters or fewer.` })
-      .regex(/^[\p{L}\p{N} ._'!?&-]+$/u, { error: "Names can use letters, numbers, spaces and . _ ' ! ? & -" }),
+      .regex(/^(?!\p{M})[\p{L}\p{M}\p{N} ._'!?&-]+$/u, { error: "Names can use letters, numbers, spaces and . _ ' ! ? & -" })
+      .refine((s) => !/\p{M}{4}/u.test(s), { error: "Names can use letters, numbers, spaces and . _ ' ! ? & -" }),
   );
 
 export const profileSchema = z.object({
@@ -75,7 +76,13 @@ export type Command = z.infer<typeof commandSchema>;
 export const chatSchema = z.object({
   text: z
     .string()
-    .transform((s) => s.replace(/[\u0000-\u001f\u007f]/g, " ").trim())
+    .transform((s) =>
+      s
+        .replace(/[\u0000-\u001f\u007f]/g, " ")
+        .replace(/(?![‌‍])\p{Cf}/gu, "")
+        .replace(/(\p{M}{3})\p{M}+/gu, "$1")
+        .trim(),
+    )
     .pipe(z.string().min(1).max(CHAT_MAX)),
 });
 

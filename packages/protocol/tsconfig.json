@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": { "types": [] },
-  "include": ["src", "../engine/src/env.d.ts"]
+  "include": ["src", "test", "../engine/src/env.d.ts"]
 }
