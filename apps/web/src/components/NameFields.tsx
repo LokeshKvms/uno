@@ -39,16 +39,9 @@ export function NameFields({ id, name, avatar, onName, onAvatar, error }: NameFi
         </span>
         <div className="avatar-picker" role="radiogroup" aria-labelledby={`${id}-avatar`}>
           {AVATAR_TONES.map((tone, i) => (
-            <button
-              key={tone}
-              type="button"
-              role="radio"
-              aria-checked={avatar === i}
-              aria-label={`Color ${i + 1}`}
-              onClick={() => onAvatar(i)}
-              style={{ background: tone }}
-            >
-              {avatar === i && <span aria-hidden="true">{initials(name || "You")}</span>}
+            <button key={tone} type="button" role="radio" aria-checked={avatar === i} onClick={() => onAvatar(i)} style={{ background: tone }}>
+              {avatar === i && initials(name || "You")}
+              <span className="sr-only">{avatar === i ? `, color ${i + 1}` : `Color ${i + 1}`}</span>
             </button>
           ))}
         </div>
