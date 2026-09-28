@@ -7,6 +7,8 @@ import { Home } from "./screens/Home.tsx";
 import { RoomScreen } from "./screens/RoomScreen.tsx";
 import { WakeScreen } from "./screens/WakeScreen.tsx";
 
+const HOME_TITLE = "UNO Online with Friends · Free, No Sign-up";
+
 export function App() {
   const route = useStore((s) => s.route);
   const booting = useStore((s) => s.booting);
@@ -24,7 +26,7 @@ export function App() {
   }, [boot]);
 
   useEffect(() => {
-    document.title = route.name === "room" ? `UNO · ${route.code}` : "UNO";
+    document.title = route.name === "room" ? `UNO · ${route.code}` : HOME_TITLE;
   }, [route]);
 
   return (

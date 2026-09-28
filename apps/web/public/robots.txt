@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /room/
+Disallow: /api/
+
+Sitemap: https://lokis-uno.onrender.com/sitemap.xml
